@@ -87,6 +87,14 @@ public class Task {
         }
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public LocalDateTime getDeadline() {
+        return deadline;
+    }
+
     @Override
     public String toString() {
         return "Задача - *" + title + "*" +
