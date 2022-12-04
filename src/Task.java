@@ -53,6 +53,8 @@ public class Task {
     }
 
     static HashSet<Task> listTasks = new HashSet<>();
+
+    static HashSet<Task> archiveTasks = new HashSet<>();
     private int id;
     private String title;
     private String description;
@@ -93,6 +95,22 @@ public class Task {
 
     public LocalDateTime getDeadline() {
         return deadline;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Override

@@ -2,6 +2,8 @@ import java.io.IOException;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 
@@ -27,6 +29,18 @@ public class Main {
                             scanner.nextLine();
                             getTasksForDate(scanner);
                             break;
+                        case 4:
+                            scanner.nextLine();
+                            getDeletedTasks(scanner);
+                            break;
+                        case 5:
+                            scanner.nextLine();
+                            editTask(scanner);
+                            break;
+                        case 6:
+                            scanner.nextLine();
+                            getTasksGroupedByDates(scanner);
+                            break;
                         case 0:
                             break label;
                     }
@@ -42,11 +56,15 @@ public class Main {
         System.out.println("1. Добавить задачу");
         System.out.println("2. Удалить задачу");
         System.out.println("3. Получить задачу на указанный день");
+        System.out.println("4. Получить удаленные задачи");
+        System.out.println("5. Отредактировать задачу");
+        System.out.println("6. Сгрупировать задачаи по датам");
         System.out.println("0. Выход");
     }
 
+    // БАЗОВЫЙ УРОВЕНЬ
     // добавить Задачу
-    private static void inputTask(Scanner scanner) {
+    public static void inputTask(Scanner scanner) {
         System.out.println();
         System.out.print("Введите название задачи: ");
         String taskName = scanner.nextLine();
@@ -67,7 +85,7 @@ public class Main {
         System.out.println("   " + newTask);
         System.out.println();
     }
-    private static int cheakEnter(Scanner scanner) {
+    public static int cheakEnter(Scanner scanner) {
         if (scanner.hasNextInt()) {
             return scanner.nextInt();
         } else {
@@ -75,7 +93,7 @@ public class Main {
             return -1;
         }
     }
-    private static Task.TaskType getType(Scanner scanner) {
+    public static Task.TaskType getType(Scanner scanner) {
         System.out.println("Типы задач:");
         System.out.println("1. Личная задача");
         System.out.println("2. Рабочая задача");
@@ -94,7 +112,7 @@ public class Main {
         System.out.println("**ВЫ ВВЕЛИ НЕ ВЕРНЫЕ ДАННЫЕ!**");
         return getType(scanner);
     }
-    private static Task.TaskPeriods getRepeatability(Scanner scanner) {
+    public static Task.TaskPeriods getRepeatability(Scanner scanner) {
         System.out.println("Переодичности задач:");
         System.out.println("1. однократная");
         System.out.println("2. ежедневная");
@@ -123,7 +141,7 @@ public class Main {
     }
 
     // получить Задачи по дате
-    private static void getTasksForDate(Scanner scanner) {
+    public static void getTasksForDate(Scanner scanner) {
         System.out.println();
         LocalDateTime dateTimeTasks = LocalDateTime.of(getDate(scanner), LocalTime.of(0,0));
 
@@ -137,11 +155,12 @@ public class Main {
             }
         }
         System.out.println();
+        System.out.println("Нажмите Enter чтобы вернуться к меню");
         scanner.nextLine();
     }
 
     // удалить Задачу по id
-    private static void deleteTask(Scanner scanner) {
+    public static void deleteTask(Scanner scanner) {
         System.out.println();
         System.out.print("Введите id задачи: ");
         int idTask = cheakEnter(scanner);
@@ -149,15 +168,93 @@ public class Main {
         for (Task task : Task.listTasks)
         {
             if (task.getId() == idTask) {
+
                 if (Task.listTasks.remove(task)) {
                     System.out.println(" УДАЛЕНА " + task.toString());
+                    Task.archiveTasks.add(task);
                 } else {
                     System.out.println(" ЗАДАЧА НЕ УДАЛЕНА, ОШИБКА!");
                 }
                 System.out.println();
+                System.out.println("Нажмите Enter чтобы вернуться к меню");
                 return;
             }
         }
+    }
+
+    // СРЕДНИЙ УРОВЕНЬ
+    public static void getDeletedTasks(Scanner scanner) {
+        System.out.println();
+        System.out.println("Удаленные задачи:");
+        for (Task task : Task.archiveTasks)
+        {
+            System.out.println(" " + task.toString());
+        }
+        System.out.println();
+        System.out.println("Нажмите Enter чтобы вернуться к меню");
+        scanner.nextLine();
+    }
+
+    public static void editTask(Scanner scanner) {
+        System.out.println();
+        System.out.print("Введите id задачи: ");
+        int idTask = cheakEnter(scanner);
+
+        for (Task task : Task.listTasks)
+        {
+            if (task.getId() == idTask) {
+                System.out.println();
+                scanner.nextLine();
+                System.out.print("Введите новое название задачи: ");
+                String newTaskName = scanner.nextLine();
+                task.setTitle(newTaskName);
+                System.out.print("Введите новое описание задачи: ");
+                String newTaskDescription = scanner.nextLine();
+                task.setDescription(newTaskDescription);
+
+                System.out.println("**ЗАДАЧА ОТРЕДАКТИРОВАНА!**");
+                System.out.println("   " + task);
+                return;
+            }
+        }
+        System.out.println("**ЗАДАЧА C ID = " + idTask + " НЕ НАЙДЕНА!**");
+        System.out.println();
+    }
+
+    public static void getTasksGroupedByDates(Scanner scanner) {
+
+        List<LocalDate> arrayOfDates = new ArrayList<>();
+        LocalDate groupingDate;
+        LocalDateTime dateTime;
+        DateTimeFormatter formatDate = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+
+        for (Task task : Task.listTasks)
+        {
+            dateTime = task.getDeadline();
+            groupingDate = LocalDate.of(dateTime.getYear(), dateTime.getMonth(), dateTime.getDayOfMonth());
+            if (!arrayOfDates.contains(groupingDate)) {
+                arrayOfDates.add(groupingDate);
+            }
+        }
+
+        System.out.println();
+
+        for (LocalDate date: arrayOfDates)
+        {
+            System.out.println("Задания на дату: " + date.format(formatDate));
+            dateTime = LocalDateTime.of(date, LocalTime.of(0,0));
+            for (Task task : Task.listTasks)
+            {
+                if (task.getDeadline().isAfter(dateTime)
+                        && task.getDeadline().isBefore(dateTime.plusDays(1))) {
+                    System.out.println(" " + task.toString());
+                }
+            }
+        }
+
+        System.out.println();
+        System.out.println("Нажмите Enter чтобы вернуться к меню");
+        scanner.nextLine();
     }
 
     // сервисные методы
